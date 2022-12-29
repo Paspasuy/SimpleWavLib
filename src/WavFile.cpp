@@ -90,6 +90,30 @@ void WavFile::writeToFile(const char* filename) const {
     }
 } 
 
+int16_t crop(int32_t val) {
+    return static_cast<int16_t>(std::min(std::max(val, INT16_MIN), INT16_MAX));
+}
+
+void WavFile::applyEcho(size_t channel, size_t delay, size_t count, float decease) {
+    float coeff = decease;
+    size_t sample_shift = SampleRate * delay / 1000;
+    size_t byte_shift = sample_shift * BlockAlign();
+    size_t sh = 0;
+    for (size_t it = 1; it <= count; ++it) {
+        sh += byte_shift;
+        char* end = data + sh + channel * BitsPerSample/8;
+        char* ptr = data + data_size - sh - BlockAlign() + byte_shift * it + channel * BitsPerSample/8;
+        while (ptr != end) {
+            int16_t* pp = reinterpret_cast<int16_t*>(ptr);
+            *pp = crop(*pp + static_cast<int32_t>(coeff * *reinterpret_cast<int16_t*>(ptr - sh)));
+            ptr -= BlockAlign();
+        }
+        coeff *= decease;
+    }
+}
+
+
+
 WavFile::~WavFile() {
     delete[] data;
 }

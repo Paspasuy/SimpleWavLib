@@ -20,6 +20,8 @@ public:
 
     void writeToFile(const char* filename) const;
 
+    void applyEcho(size_t channel, size_t delay = 75, size_t count = 1, float decease = 0.2);
+
     ~WavFile();
 };
 

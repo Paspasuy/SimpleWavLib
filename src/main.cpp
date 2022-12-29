@@ -7,6 +7,7 @@ int main(int argc, const char** argv) {
         return 0;
     }
     WavFile t(argv[1]);
+    t.applyEcho(1, 300, 1, 0.3);
     t.writeToFile("result.wav");
     return 0;
 }

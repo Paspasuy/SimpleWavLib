@@ -8,6 +8,8 @@ int main(int argc, const char** argv) {
     }
     WavFile t(argv[1]);
     t.applyEcho(1, 300, 1, 0.3);
+    t.distort(0, 30);
+    t.distort(0, 0.1);
     t.writeToFile("result.wav");
     return 0;
 }

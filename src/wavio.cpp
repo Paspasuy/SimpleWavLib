@@ -19,10 +19,10 @@ size_t read_num(std::ifstream& inp, size_t size) {
 void check_str(std::ifstream& inp, const std::string& str) {
     std::string tmp;
     if ((tmp = read_str(inp, str.size())) != str) {
-        std::cerr << str.size() << '\n';
+/*      std::cerr << str.size() << '\n';
         for (size_t kek = 0; kek < str.size(); ++kek) {
             std::cerr << "got: " << int(tmp[kek]) << std::endl;
-        }
+        }*/
         std::cerr << "Wrong file format" << std::endl;
         throw std::runtime_error("Wrong file format");
     }

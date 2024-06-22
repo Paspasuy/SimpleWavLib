@@ -155,13 +155,13 @@ WavFile::WavFile(size_t ms_duration, size_t channels) : NumChannels(channels), S
     memset(data, 0, data_size);
 }
 
-void WavFile::addSine(size_t channel, float freq, float fade) {
+void WavFile::addShape(size_t channel, float freq, float fade, double (*shape)(double)) {
     size_t channel_shift = getChannelShift(channel);
     float amplitude = fade * (1 << (BitsPerSample - 1));
     char* ptr = data + channel_shift;
     for (size_t i = 0; i < data_size / BlockAlign(); ++i) {
         float x = i * freq / SampleRate * 2 * M_PI;
-        float sample_value = sin(x) * amplitude;
+        float sample_value = shape(x) * amplitude;
         if (BitsPerSample == 16) {
             *reinterpret_cast<int16_t*>(ptr) += crop16(static_cast<int32_t>(sample_value));
         } else if (BitsPerSample == 8) {

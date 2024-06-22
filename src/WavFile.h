@@ -2,6 +2,7 @@
 #define WAVFILE_H
 
 #include <cstddef>
+#include <cmath>
 
 class WavFile {
     size_t NumChannels;
@@ -21,7 +22,7 @@ public:
 
     void writeToFile(const char* filename) const;
 
-    void addSine(size_t channel, float freq = 440, float fade = 0.5);
+    void addShape(size_t channel, float freq = 440, float fade = 0.5, double (*shape)(double x) = sin);
 
     void applyEcho(size_t channel, size_t delay = 75, size_t count = 1, float fade = 0.2);
     void distort(size_t channel, float coeff);

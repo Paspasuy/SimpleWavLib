@@ -2,6 +2,9 @@
 #include "wavio.cpp"
 
 #include <algorithm>
+#include <cstdint>
+#include <cstring>
+#include <cmath>
 
 WavFile::WavFile(const char* filename) {
     std::ifstream inp;
@@ -99,13 +102,10 @@ char crop8(int32_t val) {
 }
 
 void WavFile::applyEcho(size_t channel, size_t delay, size_t count, float fade) {
-    if (channel >= NumChannels) {
-        throw(std::invalid_argument("Invalid channel"));
-    }
     float coeff = fade;
+    size_t channel_shift = getChannelShift(channel);
     size_t sample_shift = SampleRate * delay / 1000;
     size_t byte_shift = sample_shift * BlockAlign();
-    size_t channel_shift = channel * BitsPerSample / 8;
     size_t sh = 0;
     for (size_t it = 1; it <= count; ++it) {
         sh += byte_shift;
@@ -128,10 +128,7 @@ void WavFile::applyEcho(size_t channel, size_t delay, size_t count, float fade) 
 }
 
 void WavFile::distort(size_t channel, float coeff) {
-    if (channel >= NumChannels) {
-        throw(std::invalid_argument("Invalid channel"));
-    }
-    size_t channel_shift = channel * BitsPerSample / 8;
+    size_t channel_shift = getChannelShift(channel);
     char* ptr = data + channel_shift;
     char* end = data + data_size - BlockAlign() + channel_shift;
     if (BitsPerSample == 16) {
@@ -150,4 +147,33 @@ void WavFile::distort(size_t channel, float coeff) {
 
 WavFile::~WavFile() {
     delete[] data;
+}
+
+WavFile::WavFile(size_t ms_duration, size_t channels) : NumChannels(channels), SampleRate(44100), BitsPerSample(16) {
+    data_size = ms_duration * SampleRate * BlockAlign() / 1000;
+    data = new char[data_size];
+    memset(data, 0, data_size);
+}
+
+void WavFile::addSine(size_t channel, float freq, float fade) {
+    size_t channel_shift = getChannelShift(channel);
+    float amplitude = fade * (1 << (BitsPerSample - 1));
+    char* ptr = data + channel_shift;
+    for (size_t i = 0; i < data_size / BlockAlign(); ++i) {
+        float x = i * freq / SampleRate * 2 * M_PI;
+        float sample_value = sin(x) * amplitude;
+        if (BitsPerSample == 16) {
+            *reinterpret_cast<int16_t*>(ptr) += crop16(static_cast<int32_t>(sample_value));
+        } else if (BitsPerSample == 8) {
+            *reinterpret_cast<int8_t*>(ptr) += crop8(static_cast<int16_t>(sample_value));
+        }
+        ptr += BlockAlign();
+    }
+}
+
+size_t WavFile::getChannelShift(size_t channel) {
+    if (channel >= NumChannels) {
+        throw(std::invalid_argument("Invalid channel"));
+    }
+    return channel * BitsPerSample / 8;
 }

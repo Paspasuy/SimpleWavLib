@@ -1,9 +1,25 @@
 #include "WavFile.h"
 #include <iostream>
 
+void getSine(int freq) {
+    int mxharm = 1;
+    int mxch = 2;
+    WavFile t(10000, mxch);
+    for (int ch = 0; ch < mxch; ++ch) {
+        for (int harm = 1; harm <= mxharm; ++harm) {
+            t.addSine(ch, freq * harm, 0.2 / harm);
+        }
+    }
+    std::string filename = "sine";
+    filename += std::to_string(freq);
+    filename += ".wav";
+    t.writeToFile(filename.c_str());
+}
+
 int main(int argc, const char** argv) {
     if (argc != 2) {
-        std::cout << "Usage: " << argv[0] << "<file.wav>\n";
+        std::cout << "Usage: " << argv[0] << " <file.wav>\n";
+        getSine(440);
         return 0;
     }
     WavFile t(argv[1]);
